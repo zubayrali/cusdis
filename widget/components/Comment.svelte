@@ -1,7 +1,7 @@
 <script>
   import { getContext } from 'svelte'
   import { t } from '../i18n'
-  import { initials, avatarColor } from '../avatar'
+  import { avatarColor, avatarUrl } from '../avatar'
 
   import Reply from './Reply.svelte'
   export let comment
@@ -16,7 +16,7 @@
 
 <div class="cd-comment" class:cd-child={isChild}>
   <div class="cd-avatar" style="background:{avatarColor(name)}">
-    {initials(name)}
+    <img class="cd-avatar-img" src={avatarUrl(name)} alt="" loading="lazy" />
   </div>
 
   <div class="cd-main">

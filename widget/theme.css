@@ -56,11 +56,22 @@ body {
 }
 
 /* ── Card shell ─────────────────────────────────────────────────── */
+/* Lifted off the page so the discussion reads as its own panel,
+   visually separate from the authored article above it. */
+#root .cd-root {
+  margin-top: 1rem;
+}
 #root .cd-card {
   border: 1px solid var(--cd-border);
   background: var(--cd-card-bg);
   border-radius: var(--cd-radius);
-  padding: 1.25rem 1.375rem 1rem;
+  padding: 1.25rem 1.375rem 1.25rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04),
+    0 12px 28px -16px rgba(0, 0, 0, 0.14);
+}
+#root .dark .cd-card {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4),
+    0 14px 34px -16px rgba(0, 0, 0, 0.7);
 }
 
 #root .cd-head {
@@ -217,14 +228,18 @@ body {
   width: 2.25rem;
   height: 2.25rem;
   border-radius: 999px;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
-  font-size: 0.8125rem;
-  font-weight: 600;
   user-select: none;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+#root .cd-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 #root .cd-child .cd-avatar {
   width: 1.875rem;
@@ -372,21 +387,6 @@ body {
   color: var(--cd-fg);
   font-size: 0.875rem;
 }
-#root .cd-powered {
-  margin-top: 1.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--cd-border);
-  text-align: center;
-}
-#root .cd-powered a {
-  font-size: 0.75rem;
-  color: var(--cd-faint);
-  text-decoration: none;
-}
-#root .cd-powered a:hover {
-  color: var(--cd-muted);
-}
-
 @media (max-width: 560px) {
   #root .cd-composer-foot {
     flex-direction: column;

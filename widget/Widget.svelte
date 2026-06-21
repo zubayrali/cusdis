@@ -4,7 +4,7 @@
   import axios from 'redaxios'
   import Comment from './components/Comment.svelte'
   import Reply from './components/Reply.svelte'
-  import { initials, avatarColor } from './avatar'
+  import { avatarColor, avatarUrl } from './avatar'
   import { t } from './i18n'
 
   export let attrs
@@ -188,7 +188,12 @@
                 class="cd-avatar"
                 style="background:{avatarColor(pending.by_nickname)}"
               >
-                {initials(pending.by_nickname)}
+                <img
+                  class="cd-avatar-img"
+                  src={avatarUrl(pending.by_nickname)}
+                  alt=""
+                  loading="lazy"
+                />
               </div>
               <div class="cd-main">
                 <div class="cd-meta">
@@ -216,10 +221,6 @@
             </div>
           {/if}
         {/if}
-      </div>
-
-      <div class="cd-powered">
-        <a href="https://cusdis.com">{t('powered_by')}</a>
       </div>
     </section>
   </div>

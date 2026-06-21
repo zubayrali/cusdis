@@ -15,3 +15,11 @@ export function avatarColor(name) {
   // fixed S/L keeps every colour legible against white text in both themes
   return `hsl(${h}, 52%, 48%)`
 }
+
+// DiceBear "triangles" — deterministic geometric avatar seeded from the name.
+// The coloured circle (avatarColor) sits behind it as a load/offline fallback.
+export function avatarUrl(name) {
+  return `https://api.dicebear.com/9.x/triangles/svg?seed=${encodeURIComponent(
+    name || '?',
+  )}`
+}
