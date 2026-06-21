@@ -16,10 +16,12 @@ export function avatarColor(name) {
   return `hsl(${h}, 52%, 48%)`
 }
 
-// DiceBear "triangles" — deterministic geometric avatar seeded from the name.
-// The coloured circle (avatarColor) sits behind it as a load/offline fallback.
+// Deterministic geometric avatar seeded from the name. DiceBear's hosted API
+// doesn't serve "triangles" (that style is self-host-only) — "shapes" is the
+// closest geometric look that the hosted API returns. The coloured circle
+// (avatarColor) sits behind it as a load/offline fallback.
 export function avatarUrl(name) {
-  return `https://api.dicebear.com/9.x/triangles/svg?seed=${encodeURIComponent(
+  return `https://api.dicebear.com/9.x/shapes/svg?seed=${encodeURIComponent(
     name || '?',
   )}`
 }
