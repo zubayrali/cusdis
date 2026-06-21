@@ -4,6 +4,7 @@
   import axios from 'redaxios'
   import Comment from './components/Comment.svelte'
   import Reply from './components/Reply.svelte'
+  import { initials, avatarColor } from './avatar'
   import { t } from './i18n'
 
   export let attrs
@@ -83,8 +84,13 @@
     document.documentElement.style.setProperty('color-scheme', theme)
   }
 
-  onMount(() => {
+  $: isEmpty =
+    !loadingComments &&
+    commentsResult &&
+    commentsResult.data.length === 0 &&
+    pendingComments.length === 0
 
+  onMount(() => {
     function onMessage(e) {
       try {
         const msg = JSON.parse(e.data)
@@ -143,65 +149,78 @@
     loadPending()
     getComments()
   })
-
 </script>
 
 {#if !error}
-  <div class:dark={theme === 'dark'}>
-    {#if message}
-      <div class="p-2 mb-4 bg-blue-500 text-white">
-        {message}
-      </div>
-    {/if}
-
-    <Reply />
-
-    <div class="my-8" />
-
-    <div class="mt-4 px-1">
-      {#if loadingComments}
-        <div class="text-gray-900 dark:text-gray-100">
-          {t('loading')}...
+  <div class="cd-root" class:dark={theme === 'dark'}>
+    <section class="cd-card">
+      <header class="cd-head">
+        <div class="cd-head-text">
+          <h2 class="cd-title">{t('comments_heading')}</h2>
+          <p class="cd-subtitle">{t('comments_subtitle')}</p>
         </div>
-      {:else}
-        {#each commentsResult.data as comment (comment.id)}
-          <Comment {comment} firstFloor={true} />
-        {/each}
-        {#each pendingComments as pending (pending.id)}
-          <div class="py-4 border-t border-gray-100 opacity-70">
-            <div class="flex items-center">
-              <span class="font-bold dark:text-gray-100">{pending.by_nickname}</span>
-              <span
-                class="ml-2 px-2 py-0.5 text-xs bg-yellow-100 text-yellow-800 rounded"
-                >{t('waiting_for_approval')}</span
-              >
-            </div>
-            <div
-              class="mt-2 text-gray-800 dark:text-gray-200"
-              style="white-space: pre-wrap;"
-            >
-              {pending.content}
-            </div>
-          </div>
-        {/each}
-        {#if commentsResult.pageCount > 1}
-          <div>
-            {#each Array(commentsResult.pageCount) as _, index}
-              <button
-                class="px-2 py-1 text-sm mr-2 dark:text-gray-200"
-                class:underline={page === index + 1}
-                on:click={(_) => onClickPage(index + 1)}>{index + 1}</button
-              >
-            {/each}
-          </div>
+        {#if commentsResult && typeof commentsResult.commentCount === 'number'}
+          <span class="cd-count">{commentsResult.commentCount}</span>
         {/if}
+      </header>
+
+      {#if message}
+        <div class="cd-message">{message}</div>
       {/if}
-    </div>
 
-    <div class="my-8" />
+      <div class="cd-composer-wrap">
+        <Reply />
+      </div>
 
-    <div class="text-center text-gray-500 dark:text-gray-100 text-xs">
-      <a class="underline " href="https://cusdis.com">{t('powered_by')}</a>
-    </div>
+      <div class="cd-list">
+        {#if loadingComments}
+          <div class="cd-loading">{t('loading')}...</div>
+        {:else if isEmpty}
+          <div class="cd-empty">{t('comments_empty')}</div>
+        {:else}
+          {#each commentsResult.data as comment (comment.id)}
+            <Comment {comment} />
+          {/each}
+
+          {#each pendingComments as pending (pending.id)}
+            <div class="cd-comment cd-pending">
+              <div
+                class="cd-avatar"
+                style="background:{avatarColor(pending.by_nickname)}"
+              >
+                {initials(pending.by_nickname)}
+              </div>
+              <div class="cd-main">
+                <div class="cd-meta">
+                  <span class="cd-name">{pending.by_nickname}</span>
+                  <span class="cd-badge cd-badge-pending"
+                    >{t('waiting_for_approval')}</span
+                  >
+                </div>
+                <div class="cd-body" style="white-space: pre-wrap;">
+                  {pending.content}
+                </div>
+              </div>
+            </div>
+          {/each}
+
+          {#if commentsResult.pageCount > 1}
+            <div class="cd-pagination">
+              {#each Array(commentsResult.pageCount) as _, index}
+                <button
+                  class="cd-page"
+                  class:cd-page-active={page === index + 1}
+                  on:click={(_) => onClickPage(index + 1)}>{index + 1}</button
+                >
+              {/each}
+            </div>
+          {/if}
+        {/if}
+      </div>
+
+      <div class="cd-powered">
+        <a href="https://cusdis.com">{t('powered_by')}</a>
+      </div>
+    </section>
   </div>
 {/if}

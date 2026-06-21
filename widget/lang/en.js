@@ -1,12 +1,17 @@
 export default {
   powered_by: 'Comments powered by Cusdis',
-  post_comment: 'Comment',
+  post_comment: 'Post comment',
   loading: 'Loading',
+
+  // section
+  comments_heading: 'Comments',
+  comments_subtitle: 'Join the conversation',
+  comments_empty: 'No comments yet — be the first to share your thoughts.',
 
   // comment
   email: 'Email (optional)',
   nickname: 'Nickname',
-  reply_placeholder: 'Reply...',
+  reply_placeholder: 'Add to the discussion…',
   reply_btn: 'Reply',
   sending: 'sending...',
 
