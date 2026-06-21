@@ -14,9 +14,23 @@ import { getSession, resolvedConfig } from '../../../utils.server'
 import { Footer } from '../../../components/Footer'
 import { MainLayout } from '../../../components/Layout'
 import { AiOutlineCode, AiOutlineUnorderedList, AiOutlineControl, AiOutlineCheck, AiOutlineClose, AiOutlineSmile } from 'react-icons/ai'
-import { List, Stack, Box, Text, Group, Anchor, Button, Pagination, Textarea, Title, Center } from '@mantine/core'
+import { Card, Avatar, Badge, Stack, Box, Text, Group, Anchor, Button, Pagination, Textarea, Title, Center } from '@mantine/core'
 import { MainLayoutData, ViewDataService } from '../../../service/viewData.service'
 import { notifications } from '@mantine/notifications'
+
+const AVATAR_COLORS = ['blue', 'cyan', 'grape', 'green', 'indigo', 'orange', 'pink', 'red', 'teal', 'violet']
+function initials(name: string) {
+  const parts = (name || '?').trim().split(/\s+/)
+  const a = parts[0]?.[0] || ''
+  const b = parts.length > 1 ? parts[parts.length - 1][0] : ''
+  return ((a + b).toUpperCase()) || '?'
+}
+function avatarColor(name: string) {
+  let h = 0
+  const s = name || '?'
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % AVATAR_COLORS.length
+  return AVATAR_COLORS[h]
+}
 
 const getComments = async ({ queryKey }) => {
   const [_key, { projectId, page }] = queryKey
@@ -99,18 +113,14 @@ function CommentToolbar(props: {
   return (
     <Stack>
       <Group spacing={4}>
-        {props.comment.approved ? (
-          <Button leftIcon={<AiOutlineCheck />} color="green" size="xs" variant={'light'}>
-            Approved
-          </Button>
-        ) : (
+        {!props.comment.approved && (
           <Button loading={approveCommentMutation.isLoading} onClick={_ => {
             if (window.confirm("Are you sure you want to approve this comment?")) {
               approveCommentMutation.mutate({
                 commentId: props.comment.id
               })
             }
-          }} leftIcon={<AiOutlineSmile />} size="xs" variant={'subtle'}>
+          }} leftIcon={<AiOutlineCheck />} color="green" size="xs" variant={'light'}>
             Approve
           </Button>
         )}
@@ -181,77 +191,67 @@ function ProjectPage(props: {
   return (
     <>
       <MainLayout id="comments" project={props.project} {...props.mainLayoutData}>
-        <Stack>
-          <List listStyleType={'none'} styles={{
-            root: {
-              border: '1px solid #eee'
-            },
-            item: {
-              backgroundColor: '#fff',
-              padding: 12,
-              ':not(:last-child)': {
-                borderBottom: '1px solid #eee',
-              }
-              // borderBottom: '1px solid #eee',
-            }
-          }}>
+        <Stack spacing="lg">
+          <div>
+            <Title order={2}>Comments</Title>
+            <Text size="sm" color="dimmed">
+              {commentCount} {commentCount === 1 ? 'comment' : 'comments'} total
+            </Text>
+          </div>
+
+          <Stack spacing="sm">
             {getCommentsQuery.data?.data.map(comment => {
               return (
-                <List.Item key={comment.id}>
-                  <Stack>
-                    <Stack spacing={4}>
-                      <Group spacing={8} sx={{
-                        fontSize: 14
-                      }}>
-                        <Text sx={{
-                          fontWeight: 500
-                        }}>
-                          {comment.by_nickname}
-                        </Text>
+                <Card key={comment.id} withBorder radius="md" p="md" sx={{
+                  transition: 'box-shadow .15s ease',
+                  '&:hover': { boxShadow: '0 1px 2px rgba(0,0,0,.04), 0 8px 24px -16px rgba(0,0,0,.18)' },
+                }}>
+                  <Group align="flex-start" spacing="sm" noWrap>
+                    <Avatar radius="xl" size={38} color={avatarColor(comment.by_nickname)}>
+                      {initials(comment.by_nickname)}
+                    </Avatar>
+                    <Stack spacing={6} sx={{ flex: 1, minWidth: 0 }}>
+                      <Group spacing={8} align="center">
+                        <Text weight={600} size="sm">{comment.by_nickname}</Text>
+                        {comment.approved
+                          ? <Badge size="sm" color="green" variant="light">Approved</Badge>
+                          : <Badge size="sm" color="yellow" variant="light">Pending</Badge>}
                       </Group>
-                      <Group spacing={8} sx={{
-                        fontSize: 12
-                      }}>
-                        <Text sx={{
-                        }}>
-                          {comment.parsedCreatedAt}
-                        </Text>
-                        <Text>
-                          on
-                        </Text>
-                        <Anchor href={comment.page.url} target="_blank">{comment.page.slug}</Anchor>
-                      </Group>
-                      <Box sx={{
-                        marginTop: 8
-                      }}>
+                      <Text size="xs" color="dimmed">
+                        {comment.parsedCreatedAt} · on{' '}
+                        <Anchor href={comment.page.url} target="_blank" color="dimmed" sx={{ textDecoration: 'underline' }}>
+                          {comment.page.slug}
+                        </Anchor>
+                      </Text>
+                      <Text size="sm" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                         {comment.content}
+                      </Text>
+                      <Box mt={4}>
+                        <CommentToolbar comment={comment} refetch={getCommentsQuery.refetch} />
                       </Box>
                     </Stack>
-                    <Group sx={{
-                    }}>
-                      <CommentToolbar comment={comment} refetch={getCommentsQuery.refetch} />
-                    </Group>
-                  </Stack>
-                </List.Item>
+                  </Group>
+                </Card>
               )
             })}
-          </List>
+          </Stack>
+
           {getCommentsQuery.data?.data.length === 0 && (
-            <Box p={'xl'} sx={{
-              backgroundColor: '#fff'
-            }}>
+            <Card withBorder radius="md" p="xl">
               <Center>
-                <Text color="gray" size="sm">
-                  No comments yet
-                </Text>
+                <Stack align="center" spacing={4}>
+                  <Text weight={600}>No comments yet</Text>
+                  <Text color="dimmed" size="sm">Comments will appear here as readers join the conversation.</Text>
+                </Stack>
               </Center>
-            </Box>
+            </Card>
           )}
-          <Box>
-            <Pagination total={getCommentsQuery.data?.pageCount || 0} value={page} onChange={count => {
-              setPage(count)
-            }} />
-          </Box>
+
+          {(getCommentsQuery.data?.pageCount || 0) > 1 && (
+            <Group position="center">
+              <Pagination total={getCommentsQuery.data?.pageCount || 0} value={page} onChange={setPage} />
+            </Group>
+          )}
         </Stack>
       </MainLayout>
     </>

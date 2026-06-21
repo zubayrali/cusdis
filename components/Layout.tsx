@@ -3,7 +3,8 @@ import { useMutation, useQuery } from "react-query"
 import { useRouter } from "next/router"
 import { AiOutlineLogout, AiOutlineSetting, AiOutlineFileText, AiOutlineAlert, AiOutlinePlus, AiOutlineComment, AiOutlineCode, AiOutlineRight, AiOutlineDown, AiOutlineFile, AiOutlineQuestion, AiOutlineQuestionCircle } from 'react-icons/ai'
 import { signout, signOut } from "next-auth/client"
-import { Anchor, AppShell, Avatar, Badge, Box, Button, Code, Grid, Group, Header, List, Menu, Modal, Navbar, NavLink, Paper, Progress, ScrollArea, Select, Space, Stack, Switch, Text, TextInput, Title } from "@mantine/core"
+import { ActionIcon, Anchor, AppShell, Avatar, Badge, Box, Button, Code, Grid, Group, Header, List, Menu, Modal, Navbar, NavLink, Paper, Progress, ScrollArea, Select, Space, Stack, Switch, Text, TextInput, Title, useMantineColorScheme } from "@mantine/core"
+import { FiMoon, FiSun } from 'react-icons/fi'
 import Link from "next/link"
 import type { ProjectServerSideProps } from "../pages/dashboard/project/[projectId]/settings"
 import { modals } from "@mantine/modals"
@@ -46,6 +47,8 @@ export function MainLayout(props: {
 
   const router = useRouter()
   const clipboard = useClipboard()
+  const { colorScheme, toggleColorScheme } = useMantineColorScheme()
+  const dark = colorScheme === 'dark'
   const [isUserPannelOpen, { open: openUserModal, close: closeUserModal }] = useDisclosure(false);
 
   const userSettingsForm = useForm({
@@ -159,15 +162,12 @@ export function MainLayout(props: {
   const Menubar = React.useMemo(() => {
     const styles = {
       root: {
-        borderRadius: 4
+        borderRadius: 8,
+        fontWeight: 500 as any,
       },
       label: {
         fontWeight: 500 as any,
-        color: '#343A40'
       },
-      icon: {
-        color: '#343A40'
-      }
     }
     return (
       <Stack>
@@ -186,7 +186,7 @@ export function MainLayout(props: {
 
       </Stack>
     )
-  }, [])
+  }, [dark, props.id, projectId])
 
   const openEmbededCodeModal = React.useCallback(() => {
     const code = `<div id="cusdis_thread"
@@ -196,7 +196,7 @@ export function MainLayout(props: {
   data-page-url="{{ PAGE_URL }}"
   data-page-title="{{ PAGE_TITLE }}"
 ></div>
-<script async defer src="${location.origin}/js/cusdis.es.js"></script>
+<script async defer src="${location.origin}/js/cusdis.umd.js"></script>
 `
 
     modals.openConfirmModal({
@@ -264,13 +264,16 @@ export function MainLayout(props: {
           </Group>
         </Group>
         <Group spacing={4}>
+          <ActionIcon onClick={_ => toggleColorScheme()} variant="subtle" size="md" title="Toggle color scheme">
+            {dark ? <FiSun /> : <FiMoon />}
+          </ActionIcon>
           <Button onClick={_ => {
             openUserModal()
           }} size="xs" rightIcon={<AiOutlineRight />} variant='subtle'>{props.session.user.name} {badge}</Button>
         </Group>
       </Group>
     )
-  }, [])
+  }, [dark])
 
   const usageBoard = React.useMemo(() => {
     return (
@@ -308,25 +311,31 @@ export function MainLayout(props: {
       <Head title={`${props.project.title} - Cusdis`} />
       <AppShell
         fixed={false}
-        navbar={<Navbar sx={{
-        }} width={{
+        navbar={<Navbar p={0} sx={(t) => ({
+          backgroundColor: t.colorScheme === 'dark' ? t.colors.dark[7] : '#fff',
+          borderRight: `1px solid ${t.colorScheme === 'dark' ? t.colors.dark[5] : '#ececec'}`,
+        })} width={{
           base: 240,
         }}>
           {Menubar}
         </Navbar>}
         header={
-          <Header height={48}>
+          <Header height={56} sx={(t) => ({
+            backgroundColor: t.colorScheme === 'dark' ? t.colors.dark[7] : '#fff',
+            borderBottom: `1px solid ${t.colorScheme === 'dark' ? t.colors.dark[5] : '#ececec'}`,
+          })}>
             {header}
           </Header>
         }
-        styles={{
+        styles={(t) => ({
           body: {
-            backgroundColor: '#f5f5f5',
+            backgroundColor: t.colorScheme === 'dark' ? t.colors.dark[8] : '#fafafa',
           },
           main: {
-            overflow: 'scroll'
+            overflow: 'scroll',
+            backgroundColor: t.colorScheme === 'dark' ? t.colors.dark[8] : '#fafafa',
           }
-        }}
+        })}
       >
         <Modal opened={isUserPannelOpen} size="lg" onClose={closeUserModal}
           title="User Settings"
@@ -434,7 +443,9 @@ export function MainLayout(props: {
             </Button>
           </Stack>
         </Modal>
-        {props.children}
+        <Box sx={{ maxWidth: 860, width: '100%', margin: '0 auto', padding: '32px 24px' }}>
+          {props.children}
+        </Box>
       </AppShell>
     </>
   )

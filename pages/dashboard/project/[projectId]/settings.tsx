@@ -1,4 +1,4 @@
-import { Box, Button, Center, Container, createStyles, Divider, Grid, Group, List, Stack, Switch, Text, TextInput, Title } from "@mantine/core"
+import { Button, Card, Group, Stack, Switch, Text, TextInput, Title } from "@mantine/core"
 import { notifications } from "@mantine/notifications"
 import { Project } from "@prisma/client"
 import { useRouter } from "next/router"
@@ -23,24 +23,6 @@ const updateProjectSettings = async ({ projectId, body }) => {
   return res.data
 }
 
-const useListStyle = createStyles(theme => ({
-  container: {
-    border: `1px solid #eee`,
-  },
-  item: {
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    padding: theme.spacing.md,
-    ':not(:last-child)': {
-      borderBottom: '1px solid #eee'
-    }
-  },
-  label: {
-    fontWeight: 500 as any,
-    fontSize: 14
-  }
-}))
-
 export type ProjectServerSideProps = Pick<Project, 'ownerId' | 'id' | 'title' | 'token' | 'enableNotification' | 'webhook' | 'enableWebhook'>
 
 export default function Page(props: {
@@ -48,8 +30,6 @@ export default function Page(props: {
   project: ProjectServerSideProps,
   mainLayoutData: MainLayoutData
 }) {
-  const { classes: listClasses } = useListStyle()
-
   const router = useRouter()
   const projectId = router.query.projectId as string
 
@@ -113,75 +93,61 @@ export default function Page(props: {
 
   return (
     <MainLayout id="settings" project={props.project} {...props.mainLayoutData}>
-      <Container sx={{
-        marginTop: 24
-      }}>
-        <Title sx={{
-          marginBottom: 12
-        }} order={3}>Settings</Title> 
-        <Stack className={listClasses.container} spacing={0}>
-          <Box className={listClasses.item}>
-            <Group>
-              <Text className={listClasses.label}>
-                Email Notification
-              </Text>
-              <Switch defaultChecked={props.project.enableNotification} onChange={e => {
-                enableNotificationMutation.mutate({
-                  projectId: router.query.projectId,
-                  body: {
-                    enableNotification: e.target.checked
-                  }
+      <Stack spacing="lg">
+        <Title order={2}>Settings</Title>
+
+        <Card withBorder p="md">
+          <Group position="apart" align="center" noWrap>
+            <div>
+              <Text weight={600} size="sm">Email notification</Text>
+              <Text size="xs" color="dimmed">Get an email when a new comment is posted.</Text>
+            </div>
+            <Switch defaultChecked={props.project.enableNotification} onChange={e => {
+              enableNotificationMutation.mutate({
+                projectId,
+                body: { enableNotification: e.target.checked }
+              })
+            }} />
+          </Group>
+        </Card>
+
+        <Card withBorder p="md">
+          <Stack spacing="sm">
+            <Group position="apart" align="center" noWrap>
+              <div>
+                <Text weight={600} size="sm">Webhook</Text>
+                <Text size="xs" color="dimmed">POST each new comment to an external URL.</Text>
+              </div>
+              <Switch defaultChecked={props.project.enableWebhook} onChange={e => {
+                enableWebhookMutation.mutate({
+                  projectId,
+                  body: { enableWebhook: e.target.checked }
                 })
               }} />
             </Group>
-          </Box>
-          <Box className={listClasses.item}>
-            <Stack>
-              <Group>
-                <Text className={listClasses.label}>
-                  Webhook
-                </Text>
-                <Switch defaultChecked={props.project.enableWebhook} onChange={e => {
-                  enableWebhookMutation.mutate({
-                    projectId: router.query.projectId,
-                    body: {
-                      enableWebhook: e.target.checked
-                    }
-                  })
-                }} />
-              </Group>
-              <Group grow>
-                <TextInput defaultValue={props.project.webhook} ref={webhookInputRef} placeholder="https://..." />
-                <Box>
-                  <Button onClick={onSaveWebhookUrl}>Save</Button>
-                </Box>
-              </Group>
-            </Stack>
-          </Box>
-          <Box className={listClasses.item}>
-            <Stack>
-              <Group>
-                <Text className={listClasses.label}>
-                  Danger zone
-                </Text>
-              </Group>
-              <Box>
-                <Stack align={'start'}>
-                  <Button onClick={_ => {
-                    if (window.confirm("Are you sure you want to delete this site?")) {
-                      deleteProjectMutation.mutate({
-                        projectId
-                      })
-                    }
-                  }} loading={deleteProjectMutation.isLoading} color="red">Delete site</Button>
-                </Stack>
-              </Box>
-            </Stack>
-          </Box>
-        </Stack>
-      </Container>
+            <Group align="flex-end" spacing="sm" noWrap>
+              <TextInput sx={{ flex: 1 }} label="Webhook URL" defaultValue={props.project.webhook} ref={webhookInputRef} placeholder="https://..." />
+              <Button loading={updateWebhookUrlMutation.isLoading} onClick={onSaveWebhookUrl}>Save</Button>
+            </Group>
+          </Stack>
+        </Card>
 
-
+        <Card withBorder p="md" sx={(t) => ({
+          borderColor: t.colorScheme === 'dark' ? t.colors.red[9] : t.colors.red[2],
+        })}>
+          <Group position="apart" align="center" noWrap>
+            <div>
+              <Text weight={600} size="sm" color="red">Danger zone</Text>
+              <Text size="xs" color="dimmed">Permanently delete this site and all of its comments.</Text>
+            </div>
+            <Button onClick={_ => {
+              if (window.confirm("Are you sure you want to delete this site?")) {
+                deleteProjectMutation.mutate({ projectId })
+              }
+            }} loading={deleteProjectMutation.isLoading} color="red" variant="outline">Delete site</Button>
+          </Group>
+        </Card>
+      </Stack>
     </MainLayout >
   )
 }
